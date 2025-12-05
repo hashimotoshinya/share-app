@@ -1,0 +1,56 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: laravel-backend
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    ports:
+      - "8000:8000"
+    environment:
+      - TZ=Asia/Tokyo
+      - FIREBASE_PROJECT=app
+      - FIREBASE_PROJECT_ID=share-app-8429a
+      - FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
+      - FIREBASE_DATABASE_URL=https://share-app-8429a-default-rtdb.asia-southeast1.firebasedatabase.app
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nuxt-frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - node_modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - TZ=Asia/Tokyo
+      - NUXT_NO_OXC_PARSER=1
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3000
+    command: npm run dev
+    depends_on:
+      - backend
+
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app_db
+      TZ: Asia/Tokyo
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+volumes:
+  db_data:
+  node_modules:
