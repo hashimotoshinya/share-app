@@ -118,7 +118,7 @@ Firebase Authentication と連携した認証処理を実装しています。
 
 ### 1. リポジトリをクローン
 ```
-git clone https://github.com/ユーザー名/リポジトリ名.git
+git clone https://github.com/hashimotoshinya/share-app.git
 cd share-app
 ```
 
