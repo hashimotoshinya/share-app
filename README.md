@@ -162,7 +162,7 @@ NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=xxxx
 NUXT_PUBLIC_FIREBASE_APP_ID=xxxx
 ```
 
-### 3. バックエンド（Laravel）
+### 3. Docker 環境設定
 
 #### 3-1. 環境変数設定
 
@@ -211,7 +211,29 @@ php artisan key:generate
 php artisan migrate
 ```
 
+#### 3-4. Docker 環境での Firebase 設定
+docker-compose.yml（抜粋）
 
+```
+environment:
+  - TZ=Asia/Tokyo
+  - FIREBASE_PROJECT=app
+  - FIREBASE_PROJECT_ID=your-firebase-project-id
+  - FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
+  - FIREBASE_DATABASE_URL=https://your-project-id.firebaseio.com
+```
+
+Service Account Key の配置
+
+```
+backend/storage/firebase/firebase-adminsdk.json
+```
+
+このファイルは Docker コンテナ内で以下のパスにマウントされます。
+
+```
+/var/www/html/firebase-adminsdk.json
+```
 
 ### 4. フロントエンド（Nuxt）
 ```
