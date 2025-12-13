@@ -1,4 +1,4 @@
-# 📘Share App-SNS Sample
+# 📘Share App - Firebase 認証対応 SNS サンプル
 
 ![トップ画面](docs/images/top.png)
 
