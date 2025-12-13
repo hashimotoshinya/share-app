@@ -10,12 +10,6 @@ use App\Models\Like;
 
 class CommentController extends Controller
 {
-    protected $auth;
-
-    public function __construct()
-    {
-        $this->auth = app('firebase.auth');
-    }
 
     public function index($post_id, Request $request)
     {
@@ -36,19 +30,12 @@ class CommentController extends Controller
         $likesCount = Like::where('post_id', $post_id)->count();
 
         // =====================
-        // Firebase トークン → current user 判定
+        // ミドルウェアから firebase_user を取得
         // =====================
         $currentUser = null;
-        $authHeader = $request->header('Authorization', '');
-
-        if (preg_match('/^Bearer\s+(.*)$/i', $authHeader, $matches)) {
-            try {
-                $verifiedIdToken = $this->auth->verifyIdToken($matches[1]);
-                $firebaseUid = $verifiedIdToken->claims()->get('sub');
-                $currentUser = User::where('firebase_uid', $firebaseUid)->first();
-            } catch (\Throwable $e) {
-                $currentUser = null;
-            }
+        $firebaseUser = $request->attributes->get('firebase_user');
+        if ($firebaseUser && $firebaseUser->uid) {
+            $currentUser = User::where('firebase_uid', $firebaseUser->uid)->first();
         }
 
         // liked / is_mine 判定
@@ -67,45 +54,28 @@ class CommentController extends Controller
     public function store(Request $request, $post_id)
     {
         $request->validate([
-            'content' => 'required|string|max:255',
+            'content' => 'required|string|max:120',
         ]);
 
-        // Firebase ID トークン取得
-        $idToken = $request->bearerToken();
-
-        if (!$idToken) {
-            return response()->json(['error' => 'Missing ID token'], 401);
+        // ★ ミドルウェアから firebase_user を取得（テスト環境でもサポート）
+        $firebaseUser = $request->attributes->get('firebase_user');
+        if (!$firebaseUser || !$firebaseUser->uid) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        try {
-            $verifiedIdToken = $this->auth->verifyIdToken($idToken);
-            $firebaseUid = $verifiedIdToken->claims()->get('sub');
-        } catch (\Throwable $e) {
-            return response()->json(['error' => 'Invalid ID token'], 401);
-        }
+        $firebaseUid = $firebaseUser->uid;
+        $email = $firebaseUser->email ?? 'user_'.$firebaseUid.'@example.com';
 
         // ==========================
         // Firebase UID → local user
-        // 同じ処理を PostController と合わせる！
         // ==========================
         $user = User::where('firebase_uid', $firebaseUid)->first();
 
         if (!$user) {
-            // Firebaseから情報取得
-            try {
-                $firebaseUser = $this->auth->getUser($firebaseUid);
-                $email = $firebaseUser->email ?? null;
-                $name = $firebaseUser->displayName ?? ($email ? explode('@', $email)[0] : '');
-            } catch (\Throwable $e) {
-                $email = null;
-                $name = '';
-            }
-
             $user = User::create([
-                'name' => $name ?? '',
-                'email' => $email ?? 'user_'.$firebaseUid.'@example.com',
-                'password' => bin2hex(random_bytes(16)),
                 'firebase_uid' => $firebaseUid,
+                'name' => explode('@', $email)[0],
+                'email' => $email,
             ]);
         }
 
@@ -130,4 +100,5 @@ class CommentController extends Controller
             'comment' => $commentWithUser,
         ], 201);
     }
+
 }

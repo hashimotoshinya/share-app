@@ -9,52 +9,30 @@ use App\Models\User;
 
 class LikeController extends Controller
 {
-    protected $auth;
-
-    public function __construct()
-    {
-        $this->auth = app('firebase.auth');
-    }
 
     public function toggle(Request $request, $postId)
     {
         // =====================
-        // 1. Firebase ID トークン取得
+        // ミドルウェアから firebase_user を取得
         // =====================
-        $idToken = $request->bearerToken();
-
-        if (!$idToken) {
-            return response()->json(['error' => 'Missing Authorization Bearer token'], 401);
+        $firebaseUser = $request->attributes->get('firebase_user');
+        if (!$firebaseUser || !$firebaseUser->uid) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        try {
-            $verifiedIdToken = $this->auth->verifyIdToken($idToken);
-            $firebaseUid = $verifiedIdToken->claims()->get('sub');
-        } catch (\Throwable $e) {
-            return response()->json(['error' => 'Invalid ID token'], 401);
-        }
+        $firebaseUid = $firebaseUser->uid;
+        $email = $firebaseUser->email ?? 'user_'.$firebaseUid.'@example.com';
 
         // =====================
-        // 2. Firebase UID → ローカルユーザー（未登録なら自動作成）
+        // Firebase UID → ローカルユーザー（未登録なら自動作成）
         // =====================
         $user = User::where('firebase_uid', $firebaseUid)->first();
 
         if (!$user) {
-            // Firebaseユーザー情報取得
-            try {
-                $firebaseUser = $this->auth->getUser($firebaseUid);
-                $email = $firebaseUser->email ?? null;
-                $name  = $firebaseUser->displayName ?? ($email ? explode('@', $email)[0] : '');
-            } catch (\Throwable $e) {
-                $email = null;
-                $name  = '';
-            }
-
             $user = User::create([
-                'name'         => $name ?? '',
-                'email'        => $email ?? 'user_'.$firebaseUid.'@example.com',
-                'password'     => bin2hex(random_bytes(16)),
                 'firebase_uid' => $firebaseUid,
+                'name'         => explode('@', $email)[0],
+                'email'        => $email,
             ]);
         }
 
@@ -78,6 +56,7 @@ class LikeController extends Controller
                     ->where('post_id', $postId)
                     ->first();
 
+        $statusCode = 200;
         if ($like) {
             $like->delete();
             $liked = false;
@@ -87,6 +66,7 @@ class LikeController extends Controller
                 'post_id' => $postId,
             ]);
             $liked = true;
+            $statusCode = 201; // 作成時は 201
         }
 
         // 最新いいね数
@@ -95,6 +75,6 @@ class LikeController extends Controller
         return response()->json([
             'liked' => $liked,
             'count' => $count,
-        ]);
+        ], $statusCode);
     }
 }

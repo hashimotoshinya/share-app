@@ -11,22 +11,19 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
+        'firebase_uid',
         'name',
         'email',
-        'password',
-        'firebase_uid',
     ];
 
     protected $hidden = [
-        'password',
-        'remember_token',
+        // no hidden fields for now; passwords/remember tokens are handled by Firebase
     ];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            // email verification handled by Firebase; no local casts required here
         ];
     }
 
@@ -38,5 +35,10 @@ class User extends Authenticatable
     public function posts()
     {
         return $this->hasMany(Post::class);
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(Like::class);
     }
 }

@@ -28,10 +28,9 @@ class PostController extends Controller
         // なければ作成
         if (!$localUser) {
             $localUser = User::create([
+                'firebase_uid' => $firebaseUid,
                 'name'         => explode('@', $email)[0],
                 'email'        => $email,
-                'firebase_uid' => $firebaseUid,
-                'password'     => '',
             ]);
         }
 
@@ -75,7 +74,7 @@ class PostController extends Controller
         }
 
         $data = $request->validate([
-            'content' => 'required|string|max:10000',
+            'content' => 'required|string|max:120',
         ]);
 
         $post = Post::create([

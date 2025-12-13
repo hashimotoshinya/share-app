@@ -2,19 +2,14 @@
   <div v-if="loading" class="text-white p-5">読み込み中...</div>
 
   <div v-else class="w-full text-white">
-
-    <div v-if="notification.message" class="fixed top-20 right-8 z-50">
-      <div :class="['px-4 py-2 rounded shadow', notification.type === 'error' ? 'bg-red-600' : 'bg-green-600']">
-        {{ notification.message }}
-      </div>
-    </div>
-
     <div class="border-l border-white">
       <div class="border-t border-white"></div>
 
       <div class="py-3">
         <div class="flex items-center gap-6 mb-1 px-5">
-          <p class="font-bold text-base">{{ post?.user?.name }}</p>
+          <p class="font-bold text-base truncate w-[120px] flex-shrink-0">
+            {{ post?.user?.name }}
+          </p>
 
           <div class="flex items-center gap-4">
             <button
@@ -25,9 +20,17 @@
               <img
                 src="/heart.png"
                 class="w-5 h-5 transition-all duration-150"
-                :style="liked ? 'filter: brightness(0) saturate(100%) invert(12%) sepia(96%) saturate(3000%) hue-rotate(342deg);' : ''"
+                :style="
+                  liked
+                    ? 'filter: brightness(0) saturate(100%) invert(12%) sepia(96%) saturate(3000%) hue-rotate(342deg);'
+                    : ''
+                "
               />
-              <span :class="isMine ? 'text-gray-400' : 'text-white'" class="text-sm">{{ likes }}</span>
+              <span
+                :class="isMine ? 'text-gray-400' : 'text-white'"
+                class="text-sm"
+                >{{ likes }}</span
+              >
             </button>
 
             <button @click="deletePost" class="hover:opacity-70 transition">
@@ -52,7 +55,9 @@
         :key="comment.id"
         class="border-b border-white py-3 px-5"
       >
-        <p class="font-bold text-sm">{{ comment.user?.name }}</p>
+        <p class="font-bold text-sm truncate w-[120px]">
+          {{ comment.user?.name }}
+        </p>
         <p class="text-gray-300 text-sm whitespace-pre-line">
           {{ comment.content }}
         </p>
@@ -61,12 +66,10 @@
 
     <!-- コメント入力欄 -->
     <div class="mt-6 px-5 mr-10 relative pb-14">
-
       <textarea
         v-model="newComment"
         placeholder="コメントを入力..."
-        class="w-full bg-gray-900 border border-white p-3 rounded-xl text-sm  pb-4
-               resize-none overflow-hidden"
+        class="w-full bg-gray-900 border border-white p-3 rounded-xl text-sm pb-4 resize-none overflow-hidden"
         style="
           min-height: 40px;
           height: 40px;
@@ -83,131 +86,149 @@
 
       <button
         @click="submitComment"
-        class="absolute -right-10 bottom-2 px-4 py-2 rounded-full text-white
-               transition bg-[#4b39d3] hover:bg-[#3f2fb7] text-sm"
-        style="box-shadow: -1px -3px 0px 0px rgb(155, 155, 155, 0.55);"
+        class="absolute -right-10 bottom-2 px-4 py-2 rounded-full text-white transition bg-[#4b39d3] hover:bg-[#3f2fb7] text-sm"
+        style="box-shadow: -1px -3px 0px 0px rgb(155, 155, 155, 0.55)"
       >
         コメント
       </button>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useApi } from '~/composables/useApi'
-import { getAuth } from 'firebase/auth'
+import { ref, onMounted } from "vue";
+import { useApi } from "~/composables/useApi";
+import { getAuth } from "firebase/auth";
+import * as yup from "yup";
 
+/* =============================
+   Props / Emits
+============================= */
 const props = defineProps({
   postId: { type: Number, required: true },
-})
+});
 
-const emit = defineEmits(['back'])
+const emit = defineEmits(["back"]);
 
-const api = useApi()
+/* =============================
+   API / State
+============================= */
+const api = useApi();
 
-const post = ref(null)
-const comments = ref([])
-const newComment = ref("")
-const loading = ref(true)
-const liked = ref(false)
-const likes = ref(0)
-const isMine = ref(false)
+const post = ref(null);
+const comments = ref([]);
+const newComment = ref("");
+const loading = ref(true);
+const liked = ref(false);
+const likes = ref(0);
+const isMine = ref(false);
 
-const errorMessage = ref("")
+const errorMessage = ref("");
 
-const notification = ref({ message: '', type: 'error' })
+/* =============================
+   Yup バリデーションスキーマ（投稿と統一）
+============================= */
+const commentSchema = yup
+  .string()
+  .trim()
+  .required("コメントは必須です。")
+  .max(120, "120文字以内で入力してください。");
 
-/* textarea 自動リサイズ */
+/* =============================
+   textarea 自動リサイズ
+============================= */
 const autoResize = (e) => {
-  const el = e.target
-  const baseHeight = 40
-  el.style.height = baseHeight + "px"
-  el.style.height = Math.max(el.scrollHeight, baseHeight) + "px"
-}
+  const el = e.target;
+  const baseHeight = 40;
+  el.style.height = baseHeight + "px";
+  el.style.height = Math.max(el.scrollHeight, baseHeight) + "px";
+};
 
-/* コメント取得 */
+/* =============================
+   コメント取得
+============================= */
 const fetchComments = async () => {
   try {
-    let token = null
-    const auth = getAuth()
-    if (auth.currentUser) token = await auth.currentUser.getIdToken()
+    let token = null;
+    const auth = getAuth();
+    if (auth.currentUser) token = await auth.currentUser.getIdToken();
 
     const res = await api.callApi(`/posts/${props.postId}/comments`, {
-      method: 'GET',
+      method: "GET",
       token,
-    })
+    });
 
-    post.value = res.post
-    comments.value = res.comments
-    likes.value = res.likes
-    liked.value = res.liked
-    isMine.value = res.is_mine
-
+    post.value = res.post;
+    comments.value = res.comments;
+    likes.value = res.likes;
+    liked.value = res.liked;
+    isMine.value = res.is_mine;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
-/* コメント送信 */
+/* =============================
+   コメント送信（Yup 統一バージョン）
+============================= */
 const submitComment = async () => {
-  if (!newComment.value.trim()) {
-    errorMessage.value = "コメントは必須です。"
-    return
+  try {
+    // ▼ Yup バリデーション ------------------------
+    await commentSchema.validate(newComment.value);
+    errorMessage.value = "";
+  } catch (err) {
+    errorMessage.value = err.message;
+    return;
   }
-  if (newComment.value.length > 120) {
-    errorMessage.value = "120文字以内で入力してください。"
-    return
-  }
-
-  errorMessage.value = ""
 
   try {
-    const auth = getAuth()
-    const token = await auth.currentUser.getIdToken()
+    const auth = getAuth();
+    const token = await auth.currentUser.getIdToken();
 
     const res = await api.callApi(`/posts/${props.postId}/comments`, {
-      method: 'POST',
+      method: "POST",
       token,
       body: { content: newComment.value },
-    })
+    });
 
     comments.value.push({
       ...res.comment,
-      user: res.comment.user || { id: res.comment.user_id, name: "Unknown" }
-    })
+      user: res.comment.user || { id: res.comment.user_id, name: "Unknown" },
+    });
 
-    newComment.value = ""
-
+    newComment.value = "";
   } catch (e) {
-    console.error("コメント投稿エラー:", e)
+    console.error("コメント投稿エラー:", e);
   }
-}
+};
 
-/* いいね */
+/* =============================
+   いいね
+============================= */
 const toggleLike = async () => {
   try {
-    const token = await getAuth().currentUser.getIdToken()
+    const token = await getAuth().currentUser.getIdToken();
     const res = await api.callApi(`/posts/${props.postId}/like`, {
-      method: 'POST',
+      method: "POST",
       token,
-    })
-    liked.value = res.liked
-    likes.value = res.count
+    });
+    liked.value = res.liked;
+    likes.value = res.count;
   } catch (e) {}
-}
+};
 
-/* 削除 */
+/* =============================
+   投稿削除
+============================= */
 const deletePost = async () => {
   try {
-    const token = await getAuth().currentUser.getIdToken()
-    await api.callApi(`/posts/${props.postId}`, { method: 'DELETE', token })
-    emit('back')
+    const token = await getAuth().currentUser.getIdToken();
+    await api.callApi(`/posts/${props.postId}`, { method: "DELETE", token });
+    emit("back");
   } catch (e) {
-    console.error("削除エラー:", e)
+    console.error("削除エラー:", e);
   }
-}
+};
 
-onMounted(fetchComments)
+onMounted(fetchComments);
 </script>

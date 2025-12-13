@@ -4,21 +4,28 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Kreait\Firebase\Contract\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class FirebaseAuth
 {
-    protected $auth;
-
-    public function __construct(Auth $auth)
-    {
-        $this->auth = $auth;
-    }
-
     public function handle(Request $request, Closure $next): Response
     {
         \Log::info('[FirebaseAuth] START');
+
+        // ★ テスト環境では Firebase 検証をスキップ
+        if (app()->environment('testing')) {
+            \Log::info('[FirebaseAuth] Testing mode - skipping Firebase verification');
+            
+            // テストで X-Test-Firebase-UID ヘッダーが指定されている場合はそれを使う
+            $firebaseUid = $request->header('X-Test-Firebase-UID', 'test-firebase-uid');
+            $email = $request->header('X-Test-Email', 'test@example.com');
+            
+            $request->attributes->set('firebase_user', (object)[
+                'uid'   => $firebaseUid,
+                'email' => $email,
+            ]);
+            return $next($request);
+        }
 
         // Authorization: Bearer xxx
         $authHeader = $request->header('Authorization');
@@ -33,28 +40,24 @@ class FirebaseAuth
 
         try {
             \Log::info('[FirebaseAuth] Verifying ID token...');
-            $verified = $this->auth->verifyIdToken($idToken);
+            $auth = app('firebase.auth');
+            $verified = $auth->verifyIdToken($idToken);
 
             $uid   = $verified->claims()->get('sub');
             $email = $verified->claims()->get('email');
 
-            \Log::info("[FirebaseAuth] Verified OK - UID={$uid}, EMAIL={$email}");
-
-            // ← user プロパティを汚さず attributes に保存
             $request->attributes->set('firebase_user', (object)[
                 'uid'   => $uid,
                 'email' => $email,
             ]);
 
-        } catch (\Throwable $e) {
-            \Log::error('[FirebaseAuth] FAILED: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Invalid or expired token',
-                'error'   => $e->getMessage(),
-            ], 401);
+            \Log::info("[FirebaseAuth] Verified: uid=$uid, email=$email");
+
+        } catch (\Exception $e) {
+            \Log::warning('[FirebaseAuth] Error: ' . $e->getMessage());
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        \Log::info('[FirebaseAuth] END');
         return $next($request);
     }
 }

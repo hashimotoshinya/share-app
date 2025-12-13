@@ -31,7 +31,6 @@ class AuthCheckController extends Controller
                 'firebase_uid' => $uid,
                 'email'        => $email,
                 'name'         => $email,
-                'password'     => '',
             ]);
         }
 

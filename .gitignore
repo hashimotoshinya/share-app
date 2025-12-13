@@ -1,72 +1,94 @@
 # ======================
 # BACKEND (Laravel)
 # ======================
-*.log
-.DS_Store
+
+# Environment & secrets
 .env
-.env.backup
-.env.production
-.phpactor.json
+.env.*
+!.env.example
+auth.json
+firebase-adminsdk.json
+firebase-*.json
+
+# Logs & cache
+*.log
 .phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.zed
-/auth.json
-/node_modules
+.phpunit.cache
+storage/logs/
+storage/framework/
+storage/*.key
+storage/pail/
+
+# Vendor
+/vendor/
+
+# Public build artifacts
 /public/build
 /public/hot
 /public/storage
-/storage/*.key
-/storage/pail
-/vendor
+
+# Laravel IDE / local tools
+.phpactor.json
+/.phpunit.cache
+/.fleet
+/.idea
+/.nova
+/.zed
+
+# Homestead
 Homestead.json
 Homestead.yaml
-Thumbs.db
-firebase-adminsdk.json
 
 # ======================
-# FRONTEND (Nuxt)
+# FRONTEND (Nuxt / Node)
 # ======================
-# Dev/build outputs
-.output
-.data
-.nuxt
-.nitro
-.cache
-dist
 
 # Node dependencies
-node_modules
+node_modules/
+
+# Nuxt build outputs
+.nuxt/
+.nitro/
+.output/
+dist/
+.cache/
+.data/
 
 # Logs
-logs
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Misc
-.fleet
-.idea
-.vscode
-
-# Local env files
-.env.*
-!.env.example
+# Local env
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
 # ======================
-# OS & Editor
+# DOCKER
+# ======================
+docker-compose.override.yml
+*.pid
+
+# ======================
+# OS
 # ======================
 .DS_Store
 Thumbs.db
-*.swp
-*.swo
-*~
-.vim
 
 # ======================
-# IDE
+# Editor / IDE
 # ======================
 .vscode/
 .idea/
 .fleet/
 .nova/
 .zed/
+
+# Vim / Swap
+*.swp
+*.swo
+*~
+.vim

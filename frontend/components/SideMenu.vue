@@ -27,7 +27,7 @@
       <textarea
         v-model="text"
         class="w-full h-36 bg-gray-900 border border-white rounded-xl p-3 text-white
-               resize-none mb-1 focus:ring-2 focus:ring-purple-500 outline-none"
+              resize-none mb-1 focus:ring-2 focus:ring-purple-500 outline-none"
       ></textarea>
 
       <!-- ▼ エラーメッセージ -->

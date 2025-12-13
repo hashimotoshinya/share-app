@@ -40,13 +40,19 @@ class AuthController extends Controller
             'email'    => 'required|email',
         ]);
 
-        $firebase = $this->getFirebaseUidFromToken($request);
-        if (isset($firebase['error'])) {
-            return response()->json(['error' => $firebase['error']], 401);
-        }
+        // ★ テスト環境は Firebase トークン検証をスキップ
+        if (app()->environment('testing')) {
+            $firebaseUid = 'test-firebase-uid-' . uniqid();
+            $email = $request->email;
+        } else {
+            $firebase = $this->getFirebaseUidFromToken($request);
+            if (isset($firebase['error'])) {
+                return response()->json(['error' => $firebase['error']], 401);
+            }
 
-        $firebaseUid = $firebase['uid'];
-        $email = $request->email;
+            $firebaseUid = $firebase['uid'];
+            $email = $request->email;
+        }
 
         \Log::info("[AuthController] Firebase UID={$firebaseUid}, email={$email}");
 
@@ -60,8 +66,22 @@ class AuthController extends Controller
                 'name'         => $request->username,
                 'email'        => $email,
                 'firebase_uid' => $firebaseUid,
-                'password'     => '',
             ]);
+        } else {
+            // 既存ユーザーがメールで見つかった場合、firebase_uid を設定して名前を更新する
+            $updated = false;
+            if (empty($user->firebase_uid)) {
+                $user->firebase_uid = $firebaseUid;
+                $updated = true;
+            }
+            // フロントから渡された username を優先して更新する
+            if (!empty($request->username) && $user->name !== $request->username) {
+                $user->name = $request->username;
+                $updated = true;
+            }
+            if ($updated) {
+                $user->save();
+            }
         }
 
         return response()->json([
