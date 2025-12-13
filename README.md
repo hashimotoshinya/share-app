@@ -52,8 +52,9 @@ Firebase Authentication と連携した認証処理を実装しています。
 ## 🛠使用技術（実行環境）
 
 ### バックエンド
-- PHP 8.x
-- Laravel 10.x
+- PHP 8.4.12
+- Laravel 12.37.0
+- mysql 8.0.44
 - Firebase Admin SDK
 - SQLite（テスト環境）
 - PHPUnit（Feature / Unit Test）
