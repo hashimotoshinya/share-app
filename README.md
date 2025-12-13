@@ -108,20 +108,69 @@ Firebase Authentication と連携した認証処理を実装しています。
 
 ## 環境構築
 
+### 前提条件
+以下がローカル環境にインストールされていることを前提とします。
+- Git
+- Docker / Docker Compose
+- Node.js（18.x 以上）
+- npm
+- Firebase プロジェクト（Authentication 有効化済み）
+
 ### 1. リポジトリをクローン
 ```
 git clone https://github.com/ユーザー名/リポジトリ名.git
 cd share-app
 ```
 
-### 2. バックエンド（Laravel）
+### 2. Firebase の設定
+
+#### 2-1. Firebase プロジェクト作成
+
+1.	Firebase Console で新規プロジェクトを作成
+2.	Authentication を有効化
+3.	サインイン方法で メール / パスワード を有効化
+
+#### 2-2. Firebase Service Account（バックエンド用）
+
+1.	Firebase Console
+→ プロジェクト設定
+→ サービスアカウント
+→ 新しい秘密鍵を生成
+2.	取得した JSON を以下に配置（※ Git 管理外）
+```
+backend/storage/firebase/firebase-adminsdk.json
+```
+3.	.env にパスを設定
+```
+FIREBASE_CREDENTIALS=storage/firebase/firebase-adminsdk.json
+```
+※ firebase-adminsdk.json は .gitignore 対象 です
+
+#### 2-3. Firebase Web 設定（フロントエンド用）
+
+Firebase Console
+→ プロジェクト設定
+→ 全般
+→ Web アプリを追加
+取得した設定値を frontend/.env に記載します。
+```
+NUXT_PUBLIC_FIREBASE_API_KEY=xxxx
+NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN=xxxx
+NUXT_PUBLIC_FIREBASE_PROJECT_ID=xxxx
+NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET=xxxx
+NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=xxxx
+NUXT_PUBLIC_FIREBASE_APP_ID=xxxx
+```
+
+### 3. バックエンド（Laravel）
+
+#### 3-1. 環境変数設定
+
 ```
 cd backend
 cp .env.example .env
-composer install
-php artisan key:generate
-php artisan migrate
 ```
+
 
 ### 3. フロントエンド（Nuxt）
 ```
