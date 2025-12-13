@@ -170,15 +170,74 @@ NUXT_PUBLIC_FIREBASE_APP_ID=xxxx
 cd backend
 cp .env.example .env
 ```
+.env設定例
+
+```
+※ Docker 使用時は MySQL を想定
+DB_CONNECTION=mysql
+DB_HOST=mysql-db
+DB_PORT=3306
+DB_DATABASE=app_db
+DB_USERNAME=root
+DB_PASSWORD=root
+```
+
+必要に応じて以下を設定します。
+
+```
+APP_ENV=local
+APP_KEY=
+DB_CONNECTION=sqlite
+DB_DATABASE=/absolute/path/to/database.sqlite
+```
+SQLite を使用する場合
+
+```
+touch database/database.sqlite
+```
+
+#### 3-2. Docker ビルド & 起動（Docker 使用時）
+
+```
+docker compose build
+docker compose up -d
+```
+
+#### 3-3. 依存関係インストール & 初期化
+
+```
+composer install
+php artisan key:generate
+php artisan migrate
+```
 
 
-### 3. フロントエンド（Nuxt）
+
+### 4. フロントエンド（Nuxt）
 ```
 cd frontend
 cp .env.example .env
 npm install
 npm run dev
 ```
+
+起動後、以下にアクセスします。
+```
+http://localhost:3000/register
+```
+
+---
+
+## 動作確認
+1. Firebase で新規ユーザー登録ができること
+例
+- name: ダミーユーザー
+- email: dummy@example.com
+- password: dummy1234
+
+2. ログイン後に投稿一覧が表示されること
+3. 投稿・いいね・コメントが正常に動作すること
+
 ---
 
 ## テスト
@@ -195,4 +254,4 @@ php artisan test
 
 ## 注意事項
 - Firebase の Service Account Key は .gitignore により管理外としています
-- テストでは Firebase 認証処理をスタブ化して実行しています
+- テストでは Firebase 認証処理をスタブ化しており、実際の Firebase 通信は行いません
