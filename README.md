@@ -1,4 +1,6 @@
-# Share App（仮）
+# 📘Share App-SNS Sample
+
+![トップ画面](docs/images/top.png)
 
 Firebase 認証を用いたシンプルな SNS 風アプリケーションです。  
 ユーザーは投稿の作成、削除、いいね、コメントを行うことができます。
@@ -6,11 +8,9 @@ Firebase 認証を用いたシンプルな SNS 風アプリケーションです
 フロントエンドは Nuxt（Vue）、バックエンドは Laravel API で構成されており、  
 Firebase Authentication と連携した認証処理を実装しています。
 
-< --- トップ画面の画像 ---- >
-
 ---
 
-## 作成した目的
+## 🎯作成した目的
 
 - Firebase Authentication と Laravel を連携した実践的な認証処理を理解するため
 - REST API を前提としたバックエンド設計・Feature テストの実装経験を積むため
@@ -36,7 +36,7 @@ Firebase Authentication と連携した認証処理を実装しています。
 
 ---
 
-## 機能一覧
+## 🚀機能一覧
 
 - Firebase Authentication を利用したログイン / 新規登録
 - 投稿の一覧表示
@@ -45,10 +45,11 @@ Firebase Authentication と連携した認証処理を実装しています。
 - 投稿へのコメント投稿・一覧表示
 - ログイン状態の認証チェック
 - Feature Test / Unit Test 実装
+- Laravel API による REST API 設計
 
 ---
 
-## 使用技術（実行環境）
+## 🛠使用技術（実行環境）
 
 ### バックエンド
 - PHP 8.x
@@ -69,7 +70,7 @@ Firebase Authentication と連携した認証処理を実装しています。
 
 ---
 
-## テーブル設計
+## 🗄テーブル設計
 
 ### users テーブル
 - id
@@ -99,10 +100,10 @@ Firebase Authentication と連携した認証処理を実装しています。
 
 ---
 
-## ER図
+## 📐ER図
 
 
-![ER図](backend/ER.drawio.png)
+![ER図](docs/images/er.png)
 
 ---
 
@@ -164,7 +165,29 @@ NUXT_PUBLIC_FIREBASE_APP_ID=xxxx
 
 ### 3. Docker 環境設定
 
-#### 3-1. 環境変数設定
+#### docker-compose.yml の Firebase 設定
+Firebase プロジェクトに応じて以下を修正します。
+
+```
+environment:
+  - TZ=Asia/Tokyo
+  - FIREBASE_PROJECT=app
+  - FIREBASE_PROJECT_ID=your-firebase-project-id
+  - FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
+  - FIREBASE_DATABASE_URL=https://your-project-id.firebaseio.com
+```
+
+Service Account Key は以下にマウントされます。
+
+```
+/var/www/html/firebase-adminsdk.json
+```
+
+※ Firebase プロジェクトを変更した場合は、docker compose build を再実行してください。
+
+### 4. バックエンド（Laravel）
+
+#### 4-1. 環境変数設定
 
 ```
 cd backend
@@ -182,60 +205,35 @@ DB_USERNAME=root
 DB_PASSWORD=root
 ```
 
-必要に応じて以下を設定します。
+SQLite 使用時（Docker 非使用）
 
 ```
-APP_ENV=local
-APP_KEY=
 DB_CONNECTION=sqlite
 DB_DATABASE=/absolute/path/to/database.sqlite
 ```
-SQLite を使用する場合
 
 ```
 touch database/database.sqlite
 ```
 
-#### 3-2. Docker ビルド & 起動（Docker 使用時）
+#### 4-2. Docker ビルド & 起動（Docker 使用時）
 
 ```
 docker compose build
 docker compose up -d
 ```
 
-#### 3-3. 依存関係インストール & 初期化
+#### 4-3. 依存関係インストール & 初期化
 
 ```
-composer install
-php artisan key:generate
-php artisan migrate
+Docker 使用時：
+
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate
 ```
 
-#### 3-4. Docker 環境での Firebase 設定
-docker-compose.yml（抜粋）
-
-```
-environment:
-  - TZ=Asia/Tokyo
-  - FIREBASE_PROJECT=app
-  - FIREBASE_PROJECT_ID=your-firebase-project-id
-  - FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
-  - FIREBASE_DATABASE_URL=https://your-project-id.firebaseio.com
-```
-
-Service Account Key の配置
-
-```
-backend/storage/firebase/firebase-adminsdk.json
-```
-
-このファイルは Docker コンテナ内で以下のパスにマウントされます。
-
-```
-/var/www/html/firebase-adminsdk.json
-```
-
-### 4. フロントエンド（Nuxt）
+### 5. フロントエンド（Nuxt）
 ```
 cd frontend
 cp .env.example .env
@@ -271,9 +269,11 @@ php artisan test
 - Firebase 認証のユーザーマッピング処理を Feature Test で検証
 - 投稿 / コメント / いいねの CRUD 処理を Feature Test で検証
 - モデル間のリレーションを Unit Test で検証
-
+- 将来的な仕様変更を想定し、Feature Test を中心に実装しています
 ---
 
 ## 注意事項
 - Firebase の Service Account Key は .gitignore により管理外としています
 - テストでは Firebase 認証処理をスタブ化しており、実際の Firebase 通信は行いません
+- Firebase プロジェクトや docker-compose.yml の environment を変更した場合は
+  docker compose build を再実行してください。
