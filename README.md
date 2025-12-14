@@ -62,7 +62,7 @@ Firebase Authentication と連携した認証処理を実装しています。
 ### フロントエンド
 - Nuxt 3
 - Vue 3（Composition API）
-- Firebase Authentication（Client SDK）
+- Firebase Web SDK（Authentication）
 - Tailwind CSS
 
 ### その他
@@ -143,6 +143,12 @@ cd share-app
 backend/storage/firebase/firebase-adminsdk.json
 ```
 3.	.env にパスを設定
+
+```
+cd backend
+cp .env.example .env
+```
+
 ```
 FIREBASE_CREDENTIALS=storage/firebase/firebase-adminsdk.json
 ```
@@ -155,6 +161,10 @@ Firebase Console
 → 全般
 → Web アプリを追加
 取得した設定値を frontend/.env に記載します。
+```
+cd frontend
+cp .env.example .env
+```
 ```
 NUXT_PUBLIC_FIREBASE_API_KEY=xxxx
 NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN=xxxx
@@ -175,9 +185,11 @@ environment:
   - FIREBASE_PROJECT=app
   - FIREBASE_PROJECT_ID=your-firebase-project-id
   - FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
-  - FIREBASE_DATABASE_URL=https://your-project-id.firebaseio.com
+  - FIREBASE_DATABASE_URL=https://dummy.firebaseio.com
 ```
-
+※ 本アプリでは Firebase Authentication のみを使用しています。
+FIREBASE_DATABASE_URL は Realtime Database 使用時に必要ですが、
+現状では 未使用のためダミー値を設定しています。
 Service Account Key は以下にマウントされます。
 
 ```
@@ -190,31 +202,15 @@ Service Account Key は以下にマウントされます。
 
 #### 4-1. 環境変数設定
 
-```
-cd backend
-cp .env.example .env
-```
-.env設定例
+.env 設定例（Docker 使用時）
 
 ```
-※ Docker 使用時は MySQL を想定
 DB_CONNECTION=mysql
 DB_HOST=mysql-db
 DB_PORT=3306
 DB_DATABASE=app_db
 DB_USERNAME=root
 DB_PASSWORD=root
-```
-
-SQLite 使用時（Docker 非使用）
-
-```
-DB_CONNECTION=sqlite
-DB_DATABASE=/absolute/path/to/database.sqlite
-```
-
-```
-touch database/database.sqlite
 ```
 
 #### 4-2. Docker ビルド & 起動（Docker 使用時）
@@ -227,12 +223,23 @@ docker compose up -d
 #### 4-3. 依存関係インストール & 初期化
 
 ```
-Docker 使用時：
-
 docker compose exec app composer install
 docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate
 ```
+セッションテーブルについて（重要）
+
+本アプリケーションでは
+SESSION_DRIVER=database を使用しています。
+
+Docker volume を削除した クリーンな環境 では
+sessions テーブルが存在しないため、
+初回セットアップ時に以下を実行してください。
+
+```
+docker compose exec backend php artisan session:table
+docker compose exec backend php artisan migrate
+```
+※ sessions テーブルがすでに存在する場合は不要です。
 
 ### 5. フロントエンド（Nuxt）
 ```
@@ -241,6 +248,10 @@ cp .env.example .env
 npm install
 npm run dev
 ```
+#### 📝 補足
+- Docker volume を削除すると DB 状態も初期化されます
+- 再構築テスト時は 必ず session テーブルの有無を確認してください
+- Firebase の秘密鍵は 絶対に Git 管理しないでください
 
 起動後、以下にアクセスします。
 ```
