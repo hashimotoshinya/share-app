@@ -223,14 +223,16 @@ docker compose up -d
 #### 4-3. 依存関係インストール & 初期化
 
 ```
-docker compose exec app composer install
-docker compose exec app php artisan key:generate
+docker compose exec backend composer install
+docker compose exec backend php artisan key:generate
 ```
 セッションテーブルについて（重要）
 
 本アプリケーションでは
 SESSION_DRIVER=database を使用しています。
 
+過去の Docker volume に migration ファイルが残っていた場合、
+sessions テーブルが存在しているように見えることがありますが、
 Docker volume を削除した クリーンな環境 では
 sessions テーブルが存在しないため、
 初回セットアップ時に以下を実行してください。
