@@ -1,4 +1,4 @@
-# 📘Share App - Firebase 認証対応 SNS サンプル
+# 📘Share App-Firebase Authentication × Laravel API × Nuxt による Twitter風SNSアプリ
 
 ![トップ画面](docs/images/top.png)
 
@@ -52,7 +52,7 @@ Firebase Authentication と連携した認証処理を実装しています。
 ## 🛠使用技術（実行環境）
 
 ### バックエンド
-- PHP 8.4.12
+- PHP 8.2.29
 - Laravel 12.37.0
 - mysql 8.0.44
 - Firebase Admin SDK
