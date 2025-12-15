@@ -138,10 +138,19 @@ cd share-app
 → プロジェクト設定
 → サービスアカウント
 → 新しい秘密鍵を生成
-2.	取得した JSON を以下に配置（※ Git 管理外）
+2.	Firebase Console からダウンロードした
+Service Account Key（JSON）を以下の場所に配置（※ Git 管理外）
 ```
+# ディレクトリが存在しない場合は作成
+mkdir -p backend/storage/firebase
+
+# ダウンロードした JSON をコピーして配置
+cp ~/Downloads/xxxx-firebase-adminsdk-xxxxx.json \
 backend/storage/firebase/firebase-adminsdk.json
 ```
+※ cp を使用しているため、元の JSON ファイルは削除されません。
+既存の Firebase プロジェクトを利用する場合も安全にセットアップできます。
+
 3.	.env にパスを設定
 
 ```
