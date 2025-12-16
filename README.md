@@ -60,7 +60,7 @@ Firebase Authentication と連携した認証処理を実装しています。
 - PHPUnit（Feature / Unit Test）
 
 ### フロントエンド
-- Nuxt 3
+- Nuxt 4
 - Vue 3（Composition API）
 - Firebase Web SDK（Authentication）
 - Tailwind CSS
@@ -126,7 +126,7 @@ cd share-app
 
 ### 2. Firebase の設定
 
-#### 2-1. Firebase プロジェクト作成
+#### 2-1. Firebase プロジェクト作成（既存の Firebase プロジェクトがある場合は不要）
 
 1.	Firebase Console で新規プロジェクトを作成
 2.	Authentication を有効化
@@ -157,8 +157,9 @@ backend/storage/firebase/firebase-adminsdk.json
 cd backend
 cp .env.example .env
 ```
-
 ```
+FIREBASE_PROJECT=app
+FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_CREDENTIALS=storage/firebase/firebase-adminsdk.json
 ```
 ※ firebase-adminsdk.json は .gitignore 対象 です
@@ -255,7 +256,6 @@ docker compose exec backend php artisan migrate
 ### 5. フロントエンド（Nuxt）
 ```
 cd frontend
-cp .env.example .env
 npm install
 npm run dev
 ```
