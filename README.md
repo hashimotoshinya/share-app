@@ -162,7 +162,8 @@ FIREBASE_PROJECT=app
 FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_CREDENTIALS=storage/firebase/firebase-adminsdk.json
 ```
-※ firebase-adminsdk.json は .gitignore 対象 です
+※ Firebase Admin SDK を使用して ID Token を検証するため、
+バックエンドでは Service Account Key が必要です。firebase-adminsdk.json は .gitignore 対象 です
 
 #### 2-3. Firebase Web 設定（フロントエンド用）
 
@@ -263,6 +264,25 @@ npm run dev
 - Docker volume を削除すると DB 状態も初期化されます
 - 再構築テスト時は 必ず session テーブルの有無を確認してください
 - Firebase の秘密鍵は 絶対に Git 管理しないでください
+- .env の FIREBASE_CREDENTIALS は **Laravel コンテナ内のパス**を指定します。  
+  docker-compose.yml で以下のようにマウントされています。
+
+  backend/storage/firebase/firebase-adminsdk.json
+  → /var/www/html/firebase-adminsdk.json（コンテナ内）
+
+  そのため .env では以下を指定します。
+
+  FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
+
+#### 再構築時チェックリスト（トラブルシューティング）
+
+- [ ] firebase-adminsdk.json が正しいプロジェクトのものか
+- [ ] backend/.env の FIREBASE_PROJECT_ID が一致しているか
+- [ ] docker compose build を再実行したか（Firebase 設定変更時）
+- [ ] sessions テーブルが存在するか
+- [ ] /api/register/firebase が firebase.auth ミドルウェア配下にあるか
+- [ ] フロントで nuxtApp.$firebaseAuth を参照しているか
+
 
 起動後、以下にアクセスします。
 ```
@@ -293,6 +313,29 @@ php artisan test
 - 投稿 / コメント / いいねの CRUD 処理を Feature Test で検証
 - モデル間のリレーションを Unit Test で検証
 - 将来的な仕様変更を想定し、Feature Test を中心に実装しています
+---
+## Firebase 認証ルートについて
+
+#### Firebase ログイン
+/api/login/firebase
+
+この API は firebase.auth ミドルウェア配下にはありません。
+
+フロントエンドで Firebase SDK によりログイン後、
+Laravel 側で Firebase トークンを検証し、
+該当するユーザーが DB に存在するかを確認するための API です。
+
+#### Firebase 登録・認証必須 API
+/api/register/firebase  
+/posts  
+/comments など
+
+これらの API はすべて `firebase.auth` ミドルウェア配下にあります。
+
+Firebase ID Token（Authorization: Bearer xxx）が必須であり、
+コントローラでは request body から firebase_uid を受け取りません。
+firebase_uid は FirebaseAuth ミドルウェアによって注入されます。
+
 ---
 
 ## 注意事項
