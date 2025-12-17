@@ -197,10 +197,14 @@ environment:
   - FIREBASE_PROJECT_ID=your-firebase-project-id
   - FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
   - FIREBASE_DATABASE_URL=https://dummy.firebaseio.com
+  - GOOGLE_CLOUD_PROJECT=your-firebase-project-id
 ```
-※ 本アプリでは Firebase Authentication のみを使用しています。
+※ GOOGLE_CLOUD_PROJECT は Firebase Admin SDK（Google Cloud SDK）が
+内部で参照するプロジェクト ID です。
+FIREBASE_PROJECT_ID と 同じ値を指定してください。本アプリでは Firebase Authentication のみを使用しています。
 FIREBASE_DATABASE_URL は Realtime Database 使用時に必要ですが、
 現状では 未使用のためダミー値を設定しています。
+
 Service Account Key は以下にマウントされます。
 
 ```
