@@ -232,16 +232,16 @@ DB_PASSWORD=root
 
 ```
 docker compose build
+docker compose run --rm backend composer install
+docker compose run --rm backend php artisan key:generate
 docker compose up -d
 ```
+※ 本アプリでは backend サービスで volume マウントを使用しているため、
+  初回起動時は vendor ディレクトリが存在せず、backend コンテナは一度停止します。
+  そのため、上記の手順で composer install と php artisan key:generate を
+  docker compose run で実行してから、docker compose up -d を行ってください。
 
-#### 4-3. 依存関係インストール & 初期化
-
-```
-docker compose exec backend composer install
-docker compose exec backend php artisan key:generate
-```
-セッションテーブルについて（重要）
+※ セッションテーブルについて（重要）
 
 本アプリケーションでは
 SESSION_DRIVER=database を使用しています。
@@ -277,7 +277,10 @@ npm run dev
   そのため .env では以下を指定します。
 
   FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
-
+- Nuxt 起動時に WebSocket ポートエラーが出る場合(ERROR  WebSocket server error: Port xxxx is already in use)
+  - 既存の Nuxt dev server を停止する
+  - Docker 版 Nuxt とローカル `npm run dev` を同時に起動しない
+  - もしくは Nuxt の HMR ポートを変更する     
 #### 再構築時チェックリスト（トラブルシューティング）
 
 - [ ] firebase-adminsdk.json が正しいプロジェクトのものか
