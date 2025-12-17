@@ -71,7 +71,7 @@ const scrollArea = ref(null);
 const router = useRouter();
 const api = useApi();
 
-const mode = ref("home"); // 'home' | 'comment'
+const mode = ref("home");
 const selectedPostId = ref(null);
 
 /* ------------------------------

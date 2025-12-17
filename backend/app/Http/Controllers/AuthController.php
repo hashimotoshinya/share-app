@@ -35,28 +35,22 @@ class AuthController extends Controller
      */
     public function registerFromFirebase(Request $request)
     {
+        // 入力として必要なのはこれだけ
         $request->validate([
             'username' => 'required|max:20',
             'email'    => 'required|email',
         ]);
 
-        // ★ テスト環境は Firebase トークン検証をスキップ
-        if (app()->environment('testing')) {
-            $firebaseUid = 'test-firebase-uid-' . uniqid();
-            $email = $request->email;
-        } else {
-            $firebase = $this->getFirebaseUidFromToken($request);
-            if (isset($firebase['error'])) {
-                return response()->json(['error' => $firebase['error']], 401);
-            }
+        // FirebaseAuth ミドルウェアが注入した情報を取得
+        $firebaseUser = $request->attributes->get('firebase_user');
 
-            $firebaseUid = $firebase['uid'];
-            $email = $request->email;
+        if (!$firebaseUser) {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        \Log::info("[AuthController] Firebase UID={$firebaseUid}, email={$email}");
+        $firebaseUid = $firebaseUser->uid;
+        $email       = $firebaseUser->email;
 
-        // firebase_uid or email いずれか一致で取得
         $user = User::where('firebase_uid', $firebaseUid)
                     ->orWhere('email', $email)
                     ->first();
@@ -68,20 +62,10 @@ class AuthController extends Controller
                 'firebase_uid' => $firebaseUid,
             ]);
         } else {
-            // 既存ユーザーがメールで見つかった場合、firebase_uid を設定して名前を更新する
-            $updated = false;
-            if (empty($user->firebase_uid)) {
-                $user->firebase_uid = $firebaseUid;
-                $updated = true;
-            }
-            // フロントから渡された username を優先して更新する
-            if (!empty($request->username) && $user->name !== $request->username) {
-                $user->name = $request->username;
-                $updated = true;
-            }
-            if ($updated) {
-                $user->save();
-            }
+            // 既存ユーザーは name を更新（要件どおり）
+            $user->update([
+                'name' => $request->username,
+            ]);
         }
 
         return response()->json([
@@ -117,8 +101,6 @@ class AuthController extends Controller
      */
     public function firebaseLogout()
     {
-        \Log::info('[AuthController] Firebase logout');
-
         return response()->json([
             'message' => 'Logout successful',
         ], 200);

@@ -7,14 +7,16 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./backend:/var/www/html
+      - ./backend/storage/firebase/firebase-adminsdk.json:/var/www/html/firebase-adminsdk.json:ro
     ports:
       - "8000:8000"
     environment:
       - TZ=Asia/Tokyo
       - FIREBASE_PROJECT=app
-      - FIREBASE_PROJECT_ID=share-app-8429a
+      - FIREBASE_PROJECT_ID=rebuild-test-231eb
       - FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
-      - FIREBASE_DATABASE_URL=https://share-app-8429a-default-rtdb.asia-southeast1.firebasedatabase.app
+      - FIREBASE_DATABASE_URL=https://dummy.firebaseio.com
+      - GOOGLE_CLOUD_PROJECT=rebuild-test-231eb
     depends_on:
       - db
 

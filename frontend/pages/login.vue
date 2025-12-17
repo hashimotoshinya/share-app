@@ -94,7 +94,7 @@ let auth = null
 --------------------------------------- */
 onMounted(() => {
   const nuxtApp = useNuxtApp()
-  auth = nuxtApp.$firebase.auth
+  auth = nuxtApp.$firebaseAuth
 
   if (route.query.registered) {
     flashMessage.value = '登録が完了しました！'
@@ -142,7 +142,7 @@ const loginUser = async (values) => {
       values.password
     )
 
-    const idToken = await userCredential.user.getIdToken()
+    const idToken = await userCredential.user.getIdToken(true)
 
     // Laravel API へ送信
     await callApi('/login/firebase', {

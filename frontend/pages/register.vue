@@ -90,7 +90,7 @@ const error = ref('')
 
 onMounted(() => {
   const nuxtApp = useNuxtApp()
-  auth = nuxtApp.$firebase.auth
+  auth = nuxtApp.$firebaseAuth
 })
 
 /* -------------------------------
@@ -135,7 +135,7 @@ const registerUser = async (values) => {
       values.password
     )
 
-    const idToken = await userCredential.user.getIdToken()
+    const idToken = await userCredential.user.getIdToken(true)
 
     // Laravel へ登録
     await $fetch('http://localhost:8000/api/register/firebase', {
@@ -146,7 +146,7 @@ const registerUser = async (values) => {
       },
       body: {
         username: values.username,
-        email: values.email
+        email: values.email,
       }
     })
 

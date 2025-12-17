@@ -10,9 +10,6 @@ use App\Http\Controllers\LikeController;
 // 動作確認用
 Route::get('/ping', fn() => response()->json(['message' => 'API OK']));
 
-// Firebase 登録
-Route::post('/register/firebase', [AuthController::class, 'registerFromFirebase']);
-
 // Firebase ログイン
 Route::post('/login/firebase', [AuthController::class, 'firebaseLogin']);
 
@@ -25,6 +22,9 @@ Route::middleware('firebase.auth')->group(function () {
 
     // 認証チェック
     Route::get('/auth-check', [AuthCheckController::class, 'check']);
+
+    // Firebase 登録
+    Route::post('/register/firebase', [AuthController::class, 'registerFromFirebase']);
 
     // 投稿
     Route::get('/posts', [PostController::class, 'index']);
