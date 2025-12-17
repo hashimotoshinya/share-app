@@ -13,10 +13,10 @@ services:
     environment:
       - TZ=Asia/Tokyo
       - FIREBASE_PROJECT=app
-      - FIREBASE_PROJECT_ID=rebuild-test-231eb
+      - FIREBASE_PROJECT_ID=share-app-rebuild
       - FIREBASE_CREDENTIALS=/var/www/html/firebase-adminsdk.json
       - FIREBASE_DATABASE_URL=https://dummy.firebaseio.com
-      - GOOGLE_CLOUD_PROJECT=rebuild-test-231eb
+      - GOOGLE_CLOUD_PROJECT=share-app-rebuild
     depends_on:
       - db
 
